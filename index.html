@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    (async function () {
+      const targetUrl = "https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx";
+      const fallbackUrl = "http://10.10.5.103/Rpsi_pages/faifar/index.aspx";
+
+      // ตั้ง timeout 5000 ms (5 วินาที)
+      const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+
+      try {
+        await Promise.race([
+          fetch(targetUrl, {
+            method: 'HEAD',
+            mode: 'no-cors',
+            cache: 'no-store'
+          }),
+          timeout(5000)
+        ]);
+
+        // ถ้า fetch สำเร็จภายใน 5 วินาที ให้ redirect ไป URL ปลายทาง
+        window.location.href = targetUrl;
+      } catch (e) {
+        // ถ้า fetch ไม่สำเร็จหรือหมดเวลา ให้ redirect ไป fallback
+        window.location.href = fallbackUrl;
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>กำลังตรวจสอบและพาเข้าสู่ระบบ กรุณารอสักครู่...</p>
+</body>
+</html>
