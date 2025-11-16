@@ -5,28 +5,61 @@
   <title>Redirecting...</title>
   <script>
     (async function () {
-      const targetUrl = "https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx";
-      const fallbackUrl = "http://10.10.5.103/Rpsi_pages/faifar/index.aspx";
 
-      // ตั้ง timeout 5000 ms (5 วินาที)
-      const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+      // --- รายการคู่ URL (target / fallback) ---
+      const urlPairs = [
+        {
+          target: "https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx",
+          fallback: "http://10.10.5.103/Rpsi_pages/faifar/index.aspx"
+        },
+        {
+          target: "https://rajpracha.ddc.moph.go.th/Rpsi_pages/Nonthaburi/index.htm",
+          fallback: "http://10.10.5.103/Rpsi_pages/Nonthaburi/index.htm"
+        },
+        {
+          target: "https://rajpracha.ddc.moph.go.th/index.aspx",
+          fallback: "http://10.10.41.201:8081/index.aspx"
+        }
+      ];
 
-      try {
-        await Promise.race([
-          fetch(targetUrl, {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-store'
-          }),
-          timeout(5000)
-        ]);
+      const timeout = (ms) =>
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 
-        // ถ้า fetch สำเร็จภายใน 5 วินาที ให้ redirect ไป URL ปลายทาง
-        window.location.href = targetUrl;
-      } catch (e) {
-        // ถ้า fetch ไม่สำเร็จหรือหมดเวลา ให้ redirect ไป fallback
-        window.location.href = fallbackUrl;
+      async function check(url) {
+        try {
+          await Promise.race([
+            fetch(url, {
+              method: 'HEAD',
+              mode: 'no-cors',
+              cache: 'no-store'
+            }),
+            timeout(5000)
+          ]);
+          return true;
+        } catch {
+          return false;
+        }
       }
+
+      // --- ลองทีละคู่ ---
+      for (const pair of urlPairs) {
+
+        // ลอง target ก่อน
+        if (await check(pair.target)) {
+          window.location.href = pair.target;
+          return;
+        }
+
+        // ถ้า target ไม่ได้ → ลอง fallback
+        if (await check(pair.fallback)) {
+          window.location.href = pair.fallback;
+          return;
+        }
+      }
+
+      // —–– ถ้าทุกคู่ล้มเหลว —––
+      document.body.innerHTML = "<h3>ไม่สามารถเปิดระบบใด ๆ ได้ในขณะนี้</h3>";
+
     })();
   </script>
 </head>
